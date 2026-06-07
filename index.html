@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ModelPulse · AI 端点健康检查</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">ModelPulse</p>
+      <h1>AI 端点健康检查、模型测速、错误诊断面板。</h1>
+      <p>面向 OpenAI-compatible API、Hermes/OpenClaw/CLI Proxy 玩家。先测能不能用，再决定把哪个模型设为主力。</p>
+    </section>
+
+    <section class="grid">
+      <form id="probe-form" class="panel form-panel">
+        <h2>测试端点</h2>
+        <label>后端 API URL<input name="api_base" placeholder="http://127.0.0.1:8767" /></label>
+        <label>名称<input name="name" value="local-endpoint" /></label>
+        <label>Base URL<input name="base_url" placeholder="https://api.example.com/v1" required /></label>
+        <label>API Key<input name="api_key" type="password" placeholder="sk-... / 留空也可测公开端点" /></label>
+        <label>模型列表<textarea name="models" placeholder="每行一个模型，例如：\ngpt-4o-mini\nqwen-plus"></textarea></label>
+        <button id="submit" type="submit">开始测速</button>
+      </form>
+
+      <section class="panel">
+        <h2>错误码速查</h2>
+        <div id="error-codes" class="error-codes"></div>
+      </section>
+    </section>
+
+    <section class="panel results-panel">
+      <div class="results-head">
+        <div>
+          <p class="eyebrow">Results</p>
+          <h2 id="result-title">等待测试</h2>
+        </div>
+        <p id="recommended"></p>
+      </div>
+      <div id="results" class="results"></div>
+    </section>
+  </main>
+  <script src="./app.js"></script>
+</body>
+</html>
