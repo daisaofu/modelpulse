@@ -26,7 +26,7 @@ AI 端点健康检查、模型测速、错误诊断面板。
 
 ```bash
 uv sync
-uv run uvicorn modelpulse.main:app --host 127.0.0.1 --port 8767
+uv run python -m uvicorn modelpulse.main:app --host 127.0.0.1 --port 8767 --app-dir apps/api
 python3 -m http.server 8766 --bind 127.0.0.1 --directory apps/web
 ```
 
@@ -34,6 +34,20 @@ python3 -m http.server 8766 --bind 127.0.0.1 --directory apps/web
 
 ```text
 http://127.0.0.1:8766
+```
+
+## GitHub Pages
+
+GitHub Pages 只托管 `apps/web` 静态前端：
+
+```text
+https://daisaofu.github.io/modelpulse/
+```
+
+页面可以独立展示错误码速查。测速功能需要填写一个可访问的 ModelPulse 后端 API URL，例如本地运行的：
+
+```text
+http://127.0.0.1:8767
 ```
 
 ## 测试

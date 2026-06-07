@@ -1,4 +1,17 @@
-const API_BASE = location.port === '8766' ? 'http://127.0.0.1:8767' : '';
+const DEFAULT_ERROR_CODES = {
+  400: '请求参数/格式有问题',
+  401: '没登录或 token/key 无效',
+  403: '没权限或被禁止',
+  413: '请求体太大',
+  502: '网关拿到上游错误响应',
+  503: '服务当前不可用，通常是临时状态',
+  504: '网关等上游超时',
+};
+
+const DEFAULT_API_BASE = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
+  ? 'http://127.0.0.1:8767'
+  : '';
+
 const form = document.querySelector('#probe-form');
 const submit = document.querySelector('#submit');
 const errorCodes = document.querySelector('#error-codes');
@@ -10,12 +23,24 @@ function escapeHtml(input = '') {
   return String(input).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 }
 
-async function loadErrorCodes() {
-  const res = await fetch(`${API_BASE}/api/error-explanations`);
-  const data = await res.json();
+function renderErrorCodes(data) {
   errorCodes.innerHTML = Object.entries(data).map(([code, text]) => `
     <article class="error-card"><strong>${code}</strong><span>${escapeHtml(text)}</span></article>
   `).join('');
+}
+
+function getApiBase() {
+  const input = form.elements.api_base;
+  return (input?.value || DEFAULT_API_BASE).trim().replace(/\/$/, '');
+}
+
+async function loadErrorCodes() {
+  form.elements.api_base.value = DEFAULT_API_BASE;
+  renderErrorCodes(DEFAULT_ERROR_CODES);
+  const apiBase = getApiBase();
+  if (!apiBase) return;
+  const res = await fetch(`${apiBase}/api/error-explanations`);
+  renderErrorCodes(await res.json());
 }
 
 function modelLines(text) {
@@ -37,6 +62,12 @@ function renderReport(report) {
 form.addEventListener('submit', async event => {
   event.preventDefault();
   const data = new FormData(form);
+  const apiBase = getApiBase();
+  if (!apiBase) {
+    resultTitle.textContent = '需要后端 API URL';
+    results.innerHTML = '<p class="bad">GitHub Pages 只能托管静态前端。请先填写一个可访问的 ModelPulse API 地址，例如 http://127.0.0.1:8767。</p>';
+    return;
+  }
   const payload = {
     name: data.get('name'),
     base_url: data.get('base_url'),
@@ -49,7 +80,7 @@ form.addEventListener('submit', async event => {
   recommended.textContent = '';
   results.innerHTML = '<p>正在请求 /v1/models 和 /v1/chat/completions...</p>';
   try {
-    const res = await fetch(`${API_BASE}/api/probe`, {
+    const res = await fetch(`${apiBase}/api/probe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -66,5 +97,6 @@ form.addEventListener('submit', async event => {
 });
 
 loadErrorCodes().catch(err => {
-  errorCodes.innerHTML = `<p class="bad">错误码加载失败：${escapeHtml(err.message)}</p>`;
+  renderErrorCodes(DEFAULT_ERROR_CODES);
+  console.warn('Remote error-code API unavailable, using static fallback.', err);
 });
